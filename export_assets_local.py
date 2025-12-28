@@ -7,6 +7,7 @@ import shutil
 import pandas as pd
 import numpy as np
 import joblib
+import torch # 必须引入 torch
 import json
 
 # ================= 🔴 请核对你的 E 盘路径 🔴 =================
@@ -103,23 +104,60 @@ def train_and_export_lca():
     print(f"✅ LCA 训练完成，参数已保存至: {save_path}")
 
 
-def copy_models():
-    print("2. 正在复制 TabPFN 模型文件...")
+# def copy_models():
+#     print("2. 正在复制 TabPFN 模型文件...")
+#
+#     files_to_copy = [
+#         (os.path.join(TABPFN_DIR, "models", "tabpfn.pkl"), "tabpfn_longterm.pkl"),
+#         (os.path.join(TABPFN_48H_DIR, "models", "tabpfn_48h_only.pkl"), "tabpfn_48h_only.pkl"),
+#         (os.path.join(TABPFN_DIR, "models", "feat_cols.json"), "feat_cols_longterm.json"),
+#         (os.path.join(TABPFN_48H_DIR, "models", "feat_cols_48h_only.json"), "feat_cols_48h.json"),
+#         (CKPT_PATH, "tabpfn-v2.5-regressor-v2.5_default.ckpt")
+#     ]
+#
+#     for src, dst_name in files_to_copy:
+#         if os.path.exists(src):
+#             shutil.copy(src, os.path.join(DEST_DIR, dst_name))
+#             print(f"✅ 已复制: {dst_name}")
+#         else:
+#             print(f"⚠️ 警告: 文件未找到，跳过: {src}")
 
-    files_to_copy = [
+
+def copy_models():
+    print("2. 正在转换并处理 TabPFN 模型至 CPU 模式...")
+
+    files_to_process = [
         (os.path.join(TABPFN_DIR, "models", "tabpfn.pkl"), "tabpfn_longterm.pkl"),
-        (os.path.join(TABPFN_48H_DIR, "models", "tabpfn_48h_only.pkl"), "tabpfn_48h_only.pkl"),
+        (os.path.join(TABPFN_48H_DIR, "models", "tabpfn_48h_only.pkl"), "tabpfn_48h_only.pkl")
+    ]
+
+    for src, dst_name in files_to_process:
+        if os.path.exists(src):
+            print(f"   正在处理: {dst_name} ...")
+            # 1. 加载模型（如果本地有显卡，它会先加载到显卡）
+            model = joblib.load(src)
+
+            # 2. 【关键】强制将 TabPFN 内部的 torch 模型转为 CPU
+            # TabPFN 的结构通常是 model.model 是底座
+            if hasattr(model, 'model'):
+                model.model.to('cpu')
+
+            # 3. 重新保存（此时保存的是 CPU 版本的权重）
+            joblib.dump(model, os.path.join(DEST_DIR, dst_name))
+            print(f"   ✅ 已转换并导出 CPU 版: {dst_name}")
+        else:
+            print(f"   ⚠️ 警告: 文件未找到: {src}")
+
+    # 剩下的非模型文件继续用复制即可
+    other_files = [
         (os.path.join(TABPFN_DIR, "models", "feat_cols.json"), "feat_cols_longterm.json"),
         (os.path.join(TABPFN_48H_DIR, "models", "feat_cols_48h_only.json"), "feat_cols_48h.json"),
         (CKPT_PATH, "tabpfn-v2.5-regressor-v2.5_default.ckpt")
     ]
-
-    for src, dst_name in files_to_copy:
+    for src, dst_name in other_files:
         if os.path.exists(src):
             shutil.copy(src, os.path.join(DEST_DIR, dst_name))
-            print(f"✅ 已复制: {dst_name}")
-        else:
-            print(f"⚠️ 警告: 文件未找到，跳过: {src}")
+            print(f"   ✅ 已复制: {dst_name}")
 
 
 def main():
