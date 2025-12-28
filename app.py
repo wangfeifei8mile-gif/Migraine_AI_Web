@@ -145,7 +145,7 @@ def show_cover():
     st.markdown(
         "<div style='text-align: center; padding-bottom: 20px;'><img src='https://img.icons8.com/fluency/96/000000/brain.png' width='80'></div>",
         unsafe_allow_html=True)
-    st.markdown("<h1 style='text-align: center;'>Migraine AI · 智能预警系统</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>Migraine AI · 智能偏头痛预警系统</h1>", unsafe_allow_html=True)
     st.markdown(
         "<p style='text-align: center; color: #555; margin-bottom: 30px;'>基于多模态深度学习的前驱期风险评估平台</p>",
         unsafe_allow_html=True)
@@ -196,8 +196,8 @@ def show_cover():
 # ================= 页面 1: 长期画像 =================
 def show_longterm():
     st.progress(33)
-    st.markdown("## 📋 Phase 1: 长期基线画像")
-    st.caption("请回顾您**过去 3 个月**的整体健康模式。")
+    st.markdown(" 📋 Phase 1: 长期基线画像")
+    st.caption("请回顾您过去 3 个月的整体健康模式。")
 
     temp_data = {}
     filled_count = 0
@@ -214,8 +214,10 @@ def show_longterm():
                 st.markdown(f'<p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 8px;">{val}</p>',
                             unsafe_allow_html=True)
                 # ans = st.radio(val, lib.FREQ_MAP_UI, index=None, key=key)
-                ans = st.radio("", ["否", "是"], index=None, key=key, label_visibility="collapsed")
+                ans = st.radio("", lib.FREQ_MAP_UI, index=None, key=key, label_visibility="collapsed")
+
                 if ans:
+                    # 这样通过 ans (比如 "经常") 就能在 lib.FREQ_MAP_VAL 里找到对应的数值 (0.5)
                     temp_data[key] = lib.FREQ_MAP_VAL[ans]
                     filled_count += 1
                 else:
@@ -233,8 +235,8 @@ def show_longterm():
 # ================= 页面 2: 48h 症状 =================
 def show_48h():
     st.progress(66)
-    st.markdown("## ⚡ Phase 2: 当前 (48h) 症状捕捉")
-    st.caption("请仔细感知您**最近两天**的细微身体变化。")
+    st.markdown(" ⚡ Phase 2: 当前 (48h) 症状捕捉")
+    st.caption("请仔细感知您最近两天的细微身体变化。")
 
     temp_data = {}
     filled_count = 0
