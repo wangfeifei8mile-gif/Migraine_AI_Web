@@ -204,8 +204,9 @@ def show_longterm():
 
     with st.form("long"):
         for key, val in lib.MAPPING_LONGTERM.items():
-            if st.session_state.user_info['gender'] == "男" and "hormone" in key:
-                continue
+            if st.session_state.user_info['gender'] == "男":
+                if "hormone" in key or "月经" in key or "排卵" in key:
+                    continue
 
             if key.startswith("section"):
                 st.markdown(f"### {val}")

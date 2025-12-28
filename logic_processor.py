@@ -137,6 +137,9 @@
 
 # logic_processor.py
 import os
+# 必须在 import torch 之前设置！
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
+os.environ["USE_CUDA"] = "FALSE"
 import joblib
 import numpy as np
 import pandas as pd
@@ -197,6 +200,15 @@ def load_cached_resources():
     lca_assets = _load_joblib_local("lca_params.pkl")
     model_48h = _load_joblib_local("tabpfn_48h_only.pkl")
     model_longterm = _load_joblib_local("tabpfn_longterm.pkl")
+
+    # ===================== 【关键修改 2：强制注入 CPU 属性】 =====================
+    # 强制告诉 TabPFN 实例不要去管显卡，哪怕它内部代码想去检测
+    for m in [model_48h, model_longterm]:
+        if hasattr(m, 'device'):
+            m.device = torch.device('cpu')
+        if hasattr(m, 'to'):
+            m.to('cpu')
+
 
     feat_cols_48h = _load_json_local("feat_cols_48h.json")
     feat_cols_longterm = _load_json_local("feat_cols_longterm.json")
