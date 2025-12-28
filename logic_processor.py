@@ -142,6 +142,8 @@ import numpy as np
 import pandas as pd
 import json
 import streamlit as st  # 新增引用
+import torch # 确保文件顶部引入了 torch
+from functools import partial
 
 # ---------------------------------------------------------
 # 关键修改 1: 删除 os.environ["TABPFN_OFFLINE"] = "1"
@@ -161,10 +163,24 @@ def load_cached_resources():
     print("[System] 开始加载模型资源...")
 
     # 定义加载辅助函数
+    # def _load_joblib_local(name):
+    #     path = os.path.join(MODEL_DIR, name)
+    #     if os.path.exists(path):
+    #         return joblib.load(path)
+    #     raise FileNotFoundError(f"Model file missing: {path}")
     def _load_joblib_local(name):
         path = os.path.join(MODEL_DIR, name)
         if os.path.exists(path):
-            return joblib.load(path)
+            # 魔法：临时重定向 torch.load，强制它使用 map_location='cpu'
+            # 这样无论模型之前是在哪保存的，加载时都会被踢到 CPU
+            original_load = torch.load
+            torch.load = partial(original_load, map_location='cpu')
+            try:
+                model = joblib.load(path)
+                return model
+            finally:
+                # 任务完成后还原 torch.load，避免影响其他逻辑
+                torch.load = original_load
         raise FileNotFoundError(f"Model file missing: {path}")
 
     def _load_json_local(name):
@@ -175,6 +191,9 @@ def load_cached_resources():
         return []
 
     # 1. 加载所有文件
+    # lca_assets = _load_joblib_local("lca_params.pkl")
+    # model_48h = _load_joblib_local("tabpfn_48h_only.pkl")
+    # model_longterm = _load_joblib_local("tabpfn_longterm.pkl")
     lca_assets = _load_joblib_local("lca_params.pkl")
     model_48h = _load_joblib_local("tabpfn_48h_only.pkl")
     model_longterm = _load_joblib_local("tabpfn_longterm.pkl")
