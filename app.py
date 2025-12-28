@@ -165,7 +165,7 @@ def show_cover():
 
         gender = st.selectbox("性别", ["女", "男"], help="男性用户将自动隐藏女性生理周期相关问题")
         # 提示用户格式
-        phone = st.text_input("手机号 (中国大陆 11 位号码)", placeholder="例如：13800138000")
+        phone = st.text_input("手机号 (中国大陆 11 位号码)", placeholder="")
 
         history = st.radio("既往病史", ["确诊偏头痛 / 有长期病史", "首次出现 / 病史不详"])
 
