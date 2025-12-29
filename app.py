@@ -259,6 +259,49 @@ def show_longterm():
 
 
 # ================= 页面 2: 48h 症状 =================
+# def show_48h():
+#     st.progress(66)
+#     st.markdown(" ⚡ Phase 2: 当前 (48h) 症状捕捉")
+#     st.caption("请仔细感知您最近两天的细微身体变化。")
+#
+#     temp_data = {}
+#     filled_count = 0
+#
+#     with st.form("48h"):
+#         for key, val in lib.MAPPING_48H.items():
+#             if st.session_state.user_info['gender'] == "男" and "section_6" in key: continue
+#             if st.session_state.user_info['gender'] == "男" and "月经" in str(key): continue
+#             if st.session_state.user_info['gender'] == "男" and "排卵" in str(key): continue
+#
+#             if key.startswith("section"):
+#                 st.markdown(f"### {val}")
+#             else:
+#                 st.markdown(f'<p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 8px;">{val}</p>',
+#                             unsafe_allow_html=True)
+#                 # ans = st.radio(val, ["否", "是"], index=None, key=key)
+#                 ans = st.radio("", ["否", "是"], index=None, key=key, label_visibility="collapsed")
+#                 if ans is not None:
+#                     temp_data[key] = 1 if ans == "是" else 0
+#                     filled_count += 1
+#                 else:
+#                     temp_data[key] = np.nan
+#
+#         if st.form_submit_button("生成分析报告"):
+#             if filled_count < 20:
+#                 st.error(f"信息量不足，请至少完成 20 项评估。")
+#             else:
+#                 df_chk = pd.DataFrame([temp_data]).fillna(0)
+#                 is_fraud, msg = predictor.anti_fraud_check(df_chk)
+#                 if is_fraud:
+#                     st.error(f"⚠️ 数据异常拦截：{msg}")
+#                 else:
+#                     st.session_state.input_data.update(temp_data)
+#                     st.session_state.step = 3
+#                     st.rerun()
+
+
+
+# ================= 页面 2: 48h 症状 (已集成底部加载与预计算) =================
 def show_48h():
     st.progress(66)
     st.markdown(" ⚡ Phase 2: 当前 (48h) 症状捕捉")
@@ -269,16 +312,16 @@ def show_48h():
 
     with st.form("48h"):
         for key, val in lib.MAPPING_48H.items():
-            if st.session_state.user_info['gender'] == "男" and "section_6" in key: continue
-            if st.session_state.user_info['gender'] == "男" and "月经" in str(key): continue
-            if st.session_state.user_info['gender'] == "男" and "排卵" in str(key): continue
+            # 1. 严格保留原有的男性过滤逻辑
+            if st.session_state.user_info['gender'] == "男":
+                if "section_6" in key or "月经" in str(key) or "排卵" in str(key):
+                    continue
 
             if key.startswith("section"):
                 st.markdown(f"### {val}")
             else:
                 st.markdown(f'<p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 8px;">{val}</p>',
                             unsafe_allow_html=True)
-                # ans = st.radio(val, ["否", "是"], index=None, key=key)
                 ans = st.radio("", ["否", "是"], index=None, key=key, label_visibility="collapsed")
                 if ans is not None:
                     temp_data[key] = 1 if ans == "是" else 0
@@ -286,18 +329,58 @@ def show_48h():
                 else:
                     temp_data[key] = np.nan
 
-        if st.form_submit_button("生成分析报告"):
+        # --- 核心改进部分：表单提交与即时计算 ---
+        submit_btn = st.form_submit_button("生成分析报告")
+
+        if submit_btn:
             if filled_count < 20:
                 st.error(f"信息量不足，请至少完成 20 项评估。")
             else:
-                df_chk = pd.DataFrame([temp_data]).fillna(0)
-                is_fraud, msg = predictor.anti_fraud_check(df_chk)
-                if is_fraud:
-                    st.error(f"⚠️ 数据异常拦截：{msg}")
-                else:
-                    st.session_state.input_data.update(temp_data)
-                    st.session_state.step = 3
-                    st.rerun()
+                # 2. 开启 Spinner 动画：此时动画会紧跟在提交按钮下方
+                with st.spinner("🧠 AI 正在提取临床表型特征并匹配 ICHD-3 模式，请保持页面停留..."):
+                    # 3. 反作弊检测
+                    df_chk = pd.DataFrame([temp_data]).fillna(0)
+                    is_fraud, msg = predictor.anti_fraud_check(df_chk)
+
+                    if is_fraud:
+                        st.error(f"⚠️ 数据异常拦截：{msg}")
+                    else:
+                        # 4. 执行核心计算逻辑 (由结果页前移至此)
+                        st.session_state.input_data.update(temp_data)
+                        has_hist = st.session_state.user_info['history']
+
+                        # 调用模型推理
+                        res = predictor.predict(st.session_state.input_data, has_hist)
+
+                        # 计算 PPC (前驱期表型符合度)
+                        prob = stretch_prob(res['raw_score'])
+
+                        # 确定风险等级描述
+                        if prob > 0.6:
+                            level_text = "Highly Concordant (高度相关)"
+                            msg_text = "您的当前生理指征与偏头痛前驱期模式呈现高度一致性。"
+                        elif prob > 0.35:
+                            level_text = "Moderately Concordant (中度相关)"
+                            msg_text = "检测到部分符合前驱期特征的生理信号。"
+                        else:
+                            level_text = "Low Concordance (低相关)"
+                            msg_text = "目前的指征未显示明显的前驱期模式特征。"
+
+                        # 5. 存储计算结果到 session_state，供下一步渲染
+                        st.session_state.prediction_results = {
+                            "res": res,
+                            "prob": prob,
+                            "level_text": level_text,
+                            "msg": msg_text
+                        }
+
+                        # 6. 同步保存数据到云端数据库 (Supabase)
+                        res_save = {'risk_prob_display': prob, 'risk_level': level_text}
+                        db.save_record(st.session_state.user_info, st.session_state.input_data, res_save)
+
+                        # 7. 计算全部完成，切换页面步骤并跳转
+                        st.session_state.step = 3
+                        st.rerun()
 
 
 # ================= 页面 3: 结果展示 (出处拼接修正) =================
@@ -445,61 +528,19 @@ def show_48h():
 
 
 # ================= 页面 3: 结果展示 (高性能 & 底部加载优化版) =================
-# ================= 页面 3: 结果展示 (严谨医学名词 & 底部加载优化版) =================
+# ================= 页面 3: 结果展示 (秒开渲染版) =================
 def show_result():
-    # 顶部进度条
     st.progress(100)
 
-    # 1. 缓存与计算逻辑：确保 30s 的计算只在第一次进入时发生
+    # 如果没有结果（异常情况），回退到封面
     if 'prediction_results' not in st.session_state:
-        # 【核心改进】：在页面最底部创建占位符，确保用户在点击按钮后视线不被干扰
-        loading_placeholder = st.empty()
+        st.warning("会话已过期，请重新开始评估。")
+        if st.button("返回封面"):
+            st.session_state.step = 0
+            st.rerun()
+        return
 
-        with loading_placeholder.container():
-            st.write("\n" * 2)
-            # 这里的 Spinner 位于页面底部
-            with st.spinner("🧠 AI 正在提取临床表型特征并匹配 ICHD-3 模式，请保持页面停留..."):
-                try:
-                    has_hist = st.session_state.user_info['history']
-                    # 执行模型推理 (TabPFN 连续回归计算)
-                    res = predictor.predict(st.session_state.input_data, has_hist)
-
-                    if "error" in res:
-                        st.error(res['error'])
-                        return
-
-                    # 映射 PPC 分数
-                    prob = stretch_prob(res['raw_score'])
-
-                    # 确定风险等级 (基于模型分位数阈值逻辑)
-                    if prob > 0.6:
-                        level_text = "Highly Concordant (高度相关)"
-                        msg = "您的当前生理指征与偏头痛前驱期模式呈现高度一致性。"
-                    elif prob > 0.35:
-                        level_text = "Moderately Concordant (中度相关)"
-                        msg = "检测到部分符合前驱期特征的生理信号。"
-                    else:
-                        level_text = "Low Concordance (低相关)"
-                        msg = "目前的指征未显示明显的前驱期模式特征。"
-
-                    # 打包结果存入缓存
-                    st.session_state.prediction_results = {
-                        "res": res, "prob": prob, "level_text": level_text, "msg": msg
-                    }
-
-                    # 数据同步到 Supabase
-                    res_save = {'risk_prob_display': prob, 'risk_level': level_text}
-                    db.save_record(st.session_state.user_info, st.session_state.input_data, res_save)
-
-                    st.balloons()
-                    loading_placeholder.empty()  # 计算完成，清除底部转圈动画
-
-                except Exception as e:
-                    loading_placeholder.empty()
-                    st.error(f"分析失败，详情: {e}")
-                    return
-
-    # 2. 从缓存读取数据进行秒级渲染
+    # 直接从缓存读取数据
     cache = st.session_state.prediction_results
     res, prob, level_text, msg = cache['res'], cache['prob'], cache['level_text'], cache['msg']
 
@@ -518,11 +559,11 @@ def show_result():
     </div>
     """, unsafe_allow_html=True)
 
-    # ===================== 【关键改进：基于 ICHD-3 的严谨内涵解释】 =====================
+    # --- PPC 严谨解释 ---
     with st.expander("🔬 什么是 PPC (表型符合度)？", expanded=False):
         st.markdown(f"""
         <div style="font-size: 0.88rem; color: #37474f; line-height: 1.6;">
-            <p><b>前驱表型符合度 (Prodromal Phenotype Concordance)</b> 是临床神经病学中用于量化个体症状与特定疾病模式吻合程度的指标。本系统基于 <b>ICHD-3 (国际头痛分类标准)</b> 对其内涵界定如下：</p>
+            <p><b>PPC (Prodromal Phenotype Concordance)</b> 是临床神经病学中用于量化个体症状与特定疾病模式吻合程度的指标。本系统基于 <b>ICHD-3 (国际头痛分类标准)</b> 对其内涵界定如下：</p>
             <ol>
                 <li><b>临床表型匹配：</b> “表型”是指您当前展现出的怕光、畏声、频繁哈欠等一系列症状组合。PPC 数值代表该组合与偏头痛发作前典型的生物学特征模式的相似概率。</li>
                 <li><b>模式识别逻辑：</b> 系统并非简单累加症状数量，而是通过 <b>TabPFN 深度学习模型</b> 识别各症状间的内在关联。数值越高，说明您的自主神经系统与感官调节功能的波动越趋向于“发作窗口期”。</li>
@@ -535,18 +576,16 @@ def show_result():
 
     st.markdown("<h3 style='text-align: center;'>📊 风险特征多维分布图</h3>", unsafe_allow_html=True)
 
-    # --- 3. 升级六维雷达图：严谨且直观的标签 ---
-    # 标签优化：严格控制在 5 字以内，描述具体病理模块
+    # --- 3. 升级六维雷达图：通俗且严谨的标签 ---
     cats = ['先兆期表型', '感觉敏化度', '核心前驱项', '诱发相关性', '临床群体匹配', '自主神经征']
 
-    # 提取 6 维数据
     vals = [
-        res['raw_score'] * 4.5,  # 先兆期表型 (视觉等)
-        res['raw_score'] * 3.8,  # 感觉敏化度 (怕光、怕味等)
-        res['raw_score'] * 4.0,  # 核心前驱项 (打哈欠、颈部等)
-        3.0 + np.random.rand(),  # 诱发相关性 (压力、睡眠等)
-        res['lca_probs'].max() * 5,  # 临床群体匹配 (LCA 聚类结果)
-        (res['raw_score'] * 3.5 + 1.0)  # 自主神经征 (多尿、腹胀等)
+        res['raw_score'] * 4.5,  # 先兆期表型
+        res['raw_score'] * 3.8,  # 感觉敏化度
+        res['raw_score'] * 4.0,  # 核心前驱项
+        3.0 + np.random.rand(),  # 诱发相关性
+        res['lca_probs'].max() * 5,  # 临床群体匹配
+        (res['raw_score'] * 3.5 + 1.0)  # 自主神经征
     ]
 
     fig = go.Figure(go.Scatterpolar(r=vals, theta=cats, fill='toself',
@@ -567,7 +606,7 @@ def show_result():
     st.markdown("---")
     st.subheader("🩺 临床决策支持与建议")
 
-    # 4. 建议逻辑
+    # 构建建议逻辑 (保持原样)
     active_symptoms = [k for k, v in st.session_state.input_data.items() if v >= 0.5]
     section_map = {}
     for k, v in lib.MAPPING_48H.items():
@@ -604,7 +643,8 @@ def show_result():
                         f"<div style='background-color:#f0f9f8; padding:10px; border-radius:5px; margin-bottom:15px; color:#00695c; font-size:0.85rem;'>💡 <b>建议：</b>{evidence['advice']}</div>",
                         unsafe_allow_html=True)
 
-    # 5. 底部重置按钮
+    st.balloons()  # 在渲染完成后再喷气球
+
     if st.button("🔚 结束本次评估"):
         st.session_state.clear()
         st.rerun()
