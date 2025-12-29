@@ -560,7 +560,7 @@ def show_result():
     """, unsafe_allow_html=True)
 
     # --- PPC 严谨解释 ---
-    with st.expander("🔬 什么是 前驱期表型符合度？", expanded=False):
+    with st.expander("🔬 什么是前驱期表型符合度？", expanded=False):
         st.markdown(f"""
         <div style="font-size: 0.88rem; color: #37474f; line-height: 1.6;">
             <p><b>前驱期表型符合度(Prodromal Phenotype Concordance)</b> 是临床神经病学中用于量化个体症状与特定疾病模式吻合程度的指标。本系统基于 <b>ICHD-3 (国际头痛分类标准)</b> 对其内涵界定如下：</p>
@@ -577,7 +577,7 @@ def show_result():
     st.markdown("<h3 style='text-align: center;'>📊 风险特征多维分布图</h3>", unsafe_allow_html=True)
 
     # --- 3. 升级六维雷达图：通俗且严谨的标签 ---
-    cats = ['先兆期表型', '感觉敏化度', '核心前驱项', '诱发相关性', '临床群体匹配', '自主神经征']
+    cats = ['先兆表型', '感觉敏化度', '核心前驱项', '诱发相关', '临床群体匹配', '自主神经征']
 
     vals = [
         res['raw_score'] * 4.5,  # 先兆期表型
