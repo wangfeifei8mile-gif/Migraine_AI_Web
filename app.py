@@ -560,10 +560,10 @@ def show_result():
     """, unsafe_allow_html=True)
 
     # --- PPC 严谨解释 ---
-    with st.expander("🔬 什么是 PPC (表型符合度)？", expanded=False):
+    with st.expander("🔬 什么是 前驱期表型符合度？", expanded=False):
         st.markdown(f"""
         <div style="font-size: 0.88rem; color: #37474f; line-height: 1.6;">
-            <p><b>PPC (Prodromal Phenotype Concordance)</b> 是临床神经病学中用于量化个体症状与特定疾病模式吻合程度的指标。本系统基于 <b>ICHD-3 (国际头痛分类标准)</b> 对其内涵界定如下：</p>
+            <p><b>前驱期表型符合度(Prodromal Phenotype Concordance)</b> 是临床神经病学中用于量化个体症状与特定疾病模式吻合程度的指标。本系统基于 <b>ICHD-3 (国际头痛分类标准)</b> 对其内涵界定如下：</p>
             <ol>
                 <li><b>临床表型匹配：</b> “表型”是指您当前展现出的怕光、畏声、频繁哈欠等一系列症状组合。PPC 数值代表该组合与偏头痛发作前典型的生物学特征模式的相似概率。</li>
                 <li><b>模式识别逻辑：</b> 系统并非简单累加症状数量，而是通过 <b>TabPFN 深度学习模型</b> 识别各症状间的内在关联。数值越高，说明您的自主神经系统与感官调节功能的波动越趋向于“发作窗口期”。</li>
