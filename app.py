@@ -530,8 +530,24 @@ def show_48h():
 # ================= 页面 3: 结果展示 (高性能 & 底部加载优化版) =================
 def show_result():
 
+    st.markdown('<div id="top_anchor" style="position:absolute; top:0;"></div>', unsafe_allow_html=True)
+
     st.components.v1.html(
-        "<script>window.parent.window.scrollTo(0,0);</script>",
+        """
+        <script>
+            // 尝试直接滚动
+            window.scrollTo(0,0);
+            if (window.parent) {
+                window.parent.window.scrollTo(0,0);
+                // 针对某些移动端浏览器的特殊容器滚动
+                var mainContent = window.parent.document.querySelector('section.main');
+                if (mainContent) { mainContent.scrollTo(0, 0); }
+            }
+            // 自动寻找锚点并滚动
+            var anchor = window.parent.document.getElementById("top_anchor");
+            if (anchor) { anchor.scrollIntoView({behavior: "instant", block: "start"}); }
+        </script>
+        """,
         height=0
     )
 
