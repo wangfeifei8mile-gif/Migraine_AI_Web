@@ -178,7 +178,7 @@ def show_cover():
 
     st.markdown("""
     <div style='background-color: #e3f2fd; padding: 15px; border-radius: 10px; border-left: 5px solid #2196f3; margin-bottom: 25px;'>
-        <b>👨‍⚕️ 科研级临床辅助声明：</b> 本系统基于 <b>ICHD-3 国际分类标准</b> 与 <b>TabPFN 深度学习算法</b> 构建。
+        <b>👨‍⚕️ 科研级临床辅助声明：</b> 本系统基于 <b>ICHD-3 国际分类标准</b> 与 <b>深度学习算法</b> 构建。
         评估结果旨在量化偏头痛前驱期症状群的相关性，为临床医生提供辅助决策参考，<b>不替代线下诊疗</b>。
         所有建议均基于统计学模型生成。
     </div>
