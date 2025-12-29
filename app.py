@@ -223,22 +223,37 @@ def show_cover():
 def show_longterm():
 
     # --- 【三重保险置顶逻辑：开始】 ---
-    st.markdown('<div id="top_anchor" style="position:absolute; top:0;"></div>', unsafe_allow_html=True)
+    # st.markdown('<div id="top_anchor" style="position:absolute; top:0;"></div>', unsafe_allow_html=True)
+    # st.components.v1.html(
+    #     """
+    #     <script>
+    #         window.scrollTo(0,0);
+    #         if (window.parent) {
+    #             window.parent.window.scrollTo(0,0);
+    #             var mainContent = window.parent.document.querySelector('section.main');
+    #             if (mainContent) { mainContent.scrollTo(0, 0); }
+    #         }
+    #         var anchor = window.parent.document.getElementById("top_anchor");
+    #         if (anchor) { anchor.scrollIntoView({behavior: "instant", block: "start"}); }
+    #     </script>
+    #     """,
+    #     height=0,
+    #
+    # )
+    st.markdown('<div id="top_longterm" style="position:absolute; top:0;"></div>', unsafe_allow_html=True)
     st.components.v1.html(
         """
+        <!-- page_id: longterm -->
         <script>
-            window.scrollTo(0,0);
-            if (window.parent) {
-                window.parent.window.scrollTo(0,0);
-                var mainContent = window.parent.document.querySelector('section.main');
-                if (mainContent) { mainContent.scrollTo(0, 0); }
-            }
-            var anchor = window.parent.document.getElementById("top_anchor");
-            if (anchor) { anchor.scrollIntoView({behavior: "instant", block: "start"}); }
+            setTimeout(function() {
+                window.scrollTo(0,0);
+                if (window.parent) { window.parent.window.scrollTo(0,0); }
+                var anchor = window.parent.document.getElementById("top_longterm");
+                if (anchor) { anchor.scrollIntoView({behavior: "instant", block: "start"}); }
+            }, 50);
         </script>
         """,
-        height=0,
-        key="scroll_to_top_longterm"
+        height=0
     )
     # --- 【三重保险置顶逻辑：结束】 ---
     st.progress(33)
@@ -324,25 +339,40 @@ def show_longterm():
 # ================= 页面 2: 48h 症状 (已集成底部加载与预计算) =================
 def show_48h():
     # --- 【三重保险置顶逻辑：开始】 ---
+    # st.markdown('<div id="top_48h" style="position:absolute; top:0;"></div>', unsafe_allow_html=True)
+    # st.components.v1.html(
+    #     """
+    #     <script>
+    #         setTimeout(function() {
+    #             window.scrollTo(0,0);
+    #             if (window.parent) {
+    #                 window.parent.window.scrollTo(0,0);
+    #                 var mainContent = window.parent.document.querySelector('section.main');
+    #                 if (mainContent) { mainContent.scrollTo(0, 0); }
+    #             }
+    #             // 专门针对 48h 页面的锚点聚焦
+    #             var anchor = window.parent.document.getElementById("top_48h");
+    #             if (anchor) { anchor.scrollIntoView({behavior: "instant", block: "start"}); }
+    #         }, 100); // 延迟 100 毫秒执行，躲过浏览器的初始化滚动恢复
+    #     </script>
+    #     """,
+    #     height=0,
+    #
+    # )
     st.markdown('<div id="top_48h" style="position:absolute; top:0;"></div>', unsafe_allow_html=True)
     st.components.v1.html(
         """
+        <!-- page_id: 48h -->
         <script>
             setTimeout(function() {
                 window.scrollTo(0,0);
-                if (window.parent) {
-                    window.parent.window.scrollTo(0,0);
-                    var mainContent = window.parent.document.querySelector('section.main');
-                    if (mainContent) { mainContent.scrollTo(0, 0); }
-                }
-                // 专门针对 48h 页面的锚点聚焦
+                if (window.parent) { window.parent.window.scrollTo(0,0); }
                 var anchor = window.parent.document.getElementById("top_48h");
                 if (anchor) { anchor.scrollIntoView({behavior: "instant", block: "start"}); }
-            }, 100); // 延迟 100 毫秒执行，躲过浏览器的初始化滚动恢复
+            }, 50);
         </script>
         """,
-        height=0,
-        key="scroll_to_top_48h"  # 【关键】：加上这个 key，确保本页面脚本被强制触发
+        height=0
     )
     # --- 【三重保险置顶逻辑：结束】 ---
 
@@ -573,26 +603,42 @@ def show_48h():
 # ================= 页面 3: 结果展示 (高性能 & 底部加载优化版) =================
 def show_result():
 
-    st.markdown('<div id="top_anchor" style="position:absolute; top:0;"></div>', unsafe_allow_html=True)
+    # st.markdown('<div id="top_anchor" style="position:absolute; top:0;"></div>', unsafe_allow_html=True)
+    #
+    # st.components.v1.html(
+    #     """
+    #     <script>
+    #         // 尝试直接滚动
+    #         window.scrollTo(0,0);
+    #         if (window.parent) {
+    #             window.parent.window.scrollTo(0,0);
+    #             // 针对某些移动端浏览器的特殊容器滚动
+    #             var mainContent = window.parent.document.querySelector('section.main');
+    #             if (mainContent) { mainContent.scrollTo(0, 0); }
+    #         }
+    #         // 自动寻找锚点并滚动
+    #         var anchor = window.parent.document.getElementById("top_anchor");
+    #         if (anchor) { anchor.scrollIntoView({behavior: "instant", block: "start"}); }
+    #     </script>
+    #     """,
+    #     height=0,
+    #
+    # )
 
+    st.markdown('<div id="top_result" style="position:absolute; top:0;"></div>', unsafe_allow_html=True)
     st.components.v1.html(
         """
+        <!-- page_id: result -->
         <script>
-            // 尝试直接滚动
-            window.scrollTo(0,0);
-            if (window.parent) {
-                window.parent.window.scrollTo(0,0);
-                // 针对某些移动端浏览器的特殊容器滚动
-                var mainContent = window.parent.document.querySelector('section.main');
-                if (mainContent) { mainContent.scrollTo(0, 0); }
-            }
-            // 自动寻找锚点并滚动
-            var anchor = window.parent.document.getElementById("top_anchor");
-            if (anchor) { anchor.scrollIntoView({behavior: "instant", block: "start"}); }
+            setTimeout(function() {
+                window.scrollTo(0,0);
+                if (window.parent) { window.parent.window.scrollTo(0,0); }
+                var anchor = window.parent.document.getElementById("top_result");
+                if (anchor) { anchor.scrollIntoView({behavior: "instant", block: "start"}); }
+            }, 50);
         </script>
         """,
-        height=0,
-        key="scroll_to_top_result"
+        height=0
     )
 
     st.progress(100)
