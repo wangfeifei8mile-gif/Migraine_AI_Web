@@ -528,8 +528,13 @@ def show_48h():
 
 
 # ================= 页面 3: 结果展示 (高性能 & 底部加载优化版) =================
-# ================= 页面 3: 结果展示 (秒开渲染版) =================
 def show_result():
+
+    st.components.v1.html(
+        "<script>window.parent.window.scrollTo(0,0);</script>",
+        height=0
+    )
+
     st.progress(100)
 
     # 如果没有结果（异常情况），回退到封面
@@ -539,6 +544,8 @@ def show_result():
             st.session_state.step = 0
             st.rerun()
         return
+
+    st.balloons()
 
     # 直接从缓存读取数据
     cache = st.session_state.prediction_results
@@ -643,8 +650,24 @@ def show_result():
                         f"<div style='background-color:#f0f9f8; padding:10px; border-radius:5px; margin-bottom:15px; color:#00695c; font-size:0.85rem;'>💡 <b>建议：</b>{evidence['advice']}</div>",
                         unsafe_allow_html=True)
 
-    st.balloons()  # 在渲染完成后再喷气球
+    st.markdown("---")
+    with st.expander("🔐 数据管理 (Admin Only)"):
+        pwd = st.text_input("Access Key", type="password", key="admin_pwd")
+        if pwd == "admin123":
+            try:
+                df = db.get_all_data()
+                st.write(f"当前云端总记录数: {len(df)}")
+                st.download_button(
+                    label="📥 导出全量加密数据 (CSV)",
+                    data=df.to_csv(index=False).encode('utf-8-sig'),
+                    file_name=f"migraine_data_{pd.Timestamp.now().strftime('%Y%m%d')}.csv",
+                    mime="text/csv"
+                )
+            except Exception as e:
+                st.error(f"数据读取失败: {e}")
 
+    # 5. 底部重置按钮
+    st.markdown("\n")
     if st.button("🔚 结束本次评估"):
         st.session_state.clear()
         st.rerun()
