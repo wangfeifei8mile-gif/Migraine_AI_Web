@@ -221,6 +221,25 @@ def show_cover():
 
 # ================= 页面 1: 长期画像 =================
 def show_longterm():
+
+    # --- 【三重保险置顶逻辑：开始】 ---
+    st.markdown('<div id="top_anchor" style="position:absolute; top:0;"></div>', unsafe_allow_html=True)
+    st.components.v1.html(
+        """
+        <script>
+            window.scrollTo(0,0);
+            if (window.parent) {
+                window.parent.window.scrollTo(0,0);
+                var mainContent = window.parent.document.querySelector('section.main');
+                if (mainContent) { mainContent.scrollTo(0, 0); }
+            }
+            var anchor = window.parent.document.getElementById("top_anchor");
+            if (anchor) { anchor.scrollIntoView({behavior: "instant", block: "start"}); }
+        </script>
+        """,
+        height=0
+    )
+    # --- 【三重保险置顶逻辑：结束】 ---
     st.progress(33)
     st.markdown(" 📋 Phase 1: 长期基线画像")
     st.caption("请回顾您过去 3 个月的整体健康模式。")
@@ -303,6 +322,25 @@ def show_longterm():
 
 # ================= 页面 2: 48h 症状 (已集成底部加载与预计算) =================
 def show_48h():
+    # --- 【三重保险置顶逻辑：开始】 ---
+    st.markdown('<div id="top_anchor" style="position:absolute; top:0;"></div>', unsafe_allow_html=True)
+    st.components.v1.html(
+        """
+        <script>
+            window.scrollTo(0,0);
+            if (window.parent) {
+                window.parent.window.scrollTo(0,0);
+                var mainContent = window.parent.document.querySelector('section.main');
+                if (mainContent) { mainContent.scrollTo(0, 0); }
+            }
+            var anchor = window.parent.document.getElementById("top_anchor");
+            if (anchor) { anchor.scrollIntoView({behavior: "instant", block: "start"}); }
+        </script>
+        """,
+        height=0
+    )
+    # --- 【三重保险置顶逻辑：结束】 ---
+
     st.progress(66)
     st.markdown(" ⚡ Phase 2: 当前 (48h) 症状捕捉")
     st.caption("请仔细感知您最近两天的细微身体变化。")
